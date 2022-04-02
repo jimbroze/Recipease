@@ -12,8 +12,7 @@ const RecipeShow = (props) => {
 
   useEffect(() => {
     dispatch(fetchRecipe(recipeId));
-  });
-  // TODO Prevent update in edit mode.
+  }, [recipeId]);
 
   const recipe = useSelector((state) => state.recipes.recipes[recipeId]);
 

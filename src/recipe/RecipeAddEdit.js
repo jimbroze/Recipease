@@ -1,10 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form, Field } from "react-final-form";
-// import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
-import { createRecipe, editRecipe, setUpdateStatus } from "./recipeSlice";
+import Ingredients from "./Ingredients";
+
+import {
+  fetchRecipe,
+  createRecipe,
+  editRecipe,
+  updateSteps,
+  setUpdateStatus,
+} from "./recipeSlice";
 
 const RecipeAddEdit = (props) => {
   const dispatch = useDispatch();
@@ -15,6 +23,18 @@ const RecipeAddEdit = (props) => {
   const recipeId = params.recipeId;
   const isNew = !recipeId;
   const canSave = updateStatus === "idle";
+
+  useEffect(() => {
+    dispatch(fetchRecipe(recipeId));
+  }, [recipeId]);
+
+  const recipeData = useSelector((state) => state.recipes.recipes[recipeId]);
+  if (!isNew) {
+    dispatch(updateSteps(recipeData.steps));
+  }
+  const recipeSections = useSelector((state) => state.recipes.recipeSteps);
+  const sectionArray = Object.values(recipeSections);
+  // TODO may cause issues
 
   const onSubmit = async (recipeData) => {
     var submitAction = function () {
@@ -80,9 +100,33 @@ const RecipeAddEdit = (props) => {
     );
   };
 
+  const onDragEnd = () => {};
+
+  const renderSections = sectionArray.map((recipeSection) => {
+    return (
+      <div key={recipeSection.id}>
+        {/* <Field>{recipeSection.sectionName}</Field> */}
+        <h4>Ingredients</h4>
+
+        <Droppable droppableId={"section" + recipeSection.id}>
+          {(provided) => (
+            <Ingredients
+              innerRef={provided.innerRef}
+              {...provided.droppableProps}
+              ingredients={recipeSection.ingredients}
+              placeholder={provided.placeholder}
+            />
+          )}
+        </Droppable>
+
+        {/* <Instructions /> */}
+      </div>
+    );
+  });
+
   return (
     <Form
-      initialValues={props.initialValues}
+      initialValues={recipeData}
       onSubmit={onSubmit}
       validate={validate}
       render={({ handleSubmit }) => (
@@ -94,6 +138,11 @@ const RecipeAddEdit = (props) => {
             component={renderInput}
             label="Enter Description"
           />
+          {/* <Field name="steps" component={} label="" /> */}
+          <h3>Steps</h3>
+          <DragDropContext onDragEnd={onDragEnd}>
+            {renderSections}
+          </DragDropContext>
           <button className="ui button primary" type="submit">
             Submit
           </button>

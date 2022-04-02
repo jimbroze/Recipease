@@ -9,7 +9,7 @@ const RecipeList = (props) => {
 
   useEffect(() => {
     dispatch(fetchRecipes());
-  });
+  }, []);
 
   const recipes = useSelector((state) => state.recipes.recipes);
   const recipeArray = Object.values(recipes);

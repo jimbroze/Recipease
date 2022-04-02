@@ -3,6 +3,16 @@ import recipease from "../api/recipease";
 
 const initialState = {
   recipes: {},
+  recipeSteps: {
+    1: {
+      id: 1,
+      ingredients: {
+        1: {
+          id: 1,
+        },
+      },
+    },
+  },
   updateStatus: "idle",
   error: "",
 };
@@ -51,6 +61,9 @@ const recipeSlice = createSlice({
   name: "recipes",
   initialState,
   reducers: {
+    updateSteps(state, action) {
+      state.recipeSteps = action.payload;
+    },
     setUpdateStatus(state, action) {
       state.updateStatus = action.payload;
     },
@@ -121,6 +134,6 @@ const recipeSlice = createSlice({
   },
 });
 
-export const { setUpdateStatus } = recipeSlice.actions;
+export const { updateSteps, setUpdateStatus } = recipeSlice.actions;
 
 export default recipeSlice.reducer;
