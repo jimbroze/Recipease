@@ -1,18 +1,13 @@
-import { compose, combineReducers, applyMiddleware, createStore } from "redux";
-import reduxThunk from "redux-thunk";
+import { configureStore } from "@reduxjs/toolkit";
 
 import authReducer from "./auth/state/authReducers";
-import recipeReducer from "./recipe/state/recipeReducers";
+import recipeReducer from "./recipe/recipeSlice";
 
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-const reducers = combineReducers({
-  auth: authReducer,
-  recipes: recipeReducer,
+const store = configureStore({
+  reducer: {
+    auth: authReducer,
+    recipes: recipeReducer,
+  },
 });
-
-const store = createStore(
-  reducers,
-  composeEnhancers(applyMiddleware(reduxThunk))
-);
 
 export default store;

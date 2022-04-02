@@ -1,10 +1,48 @@
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import { Form, Field } from "react-final-form";
 // import { DragDropContext } from "react-beautiful-dnd";
 
-const Recipe = (props) => {
-  const onSubmit = (formValues) => {
-    props.onSubmit(formValues);
+import { createRecipe, editRecipe, setUpdateStatus } from "./recipeSlice";
+
+const RecipeAddEdit = (props) => {
+  const dispatch = useDispatch();
+  let navigate = useNavigate();
+  let params = useParams();
+  const { updateStatus, error } = useSelector((state) => state.recipes);
+
+  const recipeId = params.recipeId;
+  const isNew = !recipeId;
+  const canSave = updateStatus === "idle";
+
+  const onSubmit = async (recipeData) => {
+    var submitAction = function () {
+      return isNew
+        ? createRecipe(recipeData)
+        : editRecipe(recipeId, recipeData);
+    };
+
+    if (canSave) {
+      try {
+        dispatch(setUpdateStatus("pending"));
+        var recipe = await dispatch(submitAction()).unwrap();
+      } catch (err) {
+        console.error("Failed to save the recipe: ", err);
+      } finally {
+        dispatch(setUpdateStatus("idle"));
+        navigate(`/recipes/${recipe.id}`);
+      }
+    }
+  };
+
+  const renderFormError = () => {
+    if (error)
+      return (
+        <div className="ui error message">
+          <div className="header">{error}</div>
+        </div>
+      );
   };
 
   const validate = (formValues) => {
@@ -49,6 +87,7 @@ const Recipe = (props) => {
       validate={validate}
       render={({ handleSubmit }) => (
         <form onSubmit={handleSubmit} className="ui form error">
+          {renderFormError()}
           <Field name="title" component={renderInput} label="Enter Title" />
           <Field
             name="description"
@@ -64,4 +103,4 @@ const Recipe = (props) => {
   );
 };
 
-export default Recipe;
+export default RecipeAddEdit;
