@@ -10,7 +10,8 @@ import {
   fetchRecipe,
   createRecipe,
   editRecipe,
-  updateSteps,
+  setCurrentRecipe,
+  ingredientsMoved,
   setUpdateStatus,
 } from "./recipeSlice";
 
@@ -28,14 +29,13 @@ const RecipeAddEdit = (props) => {
     dispatch(fetchRecipe(recipeId));
   }, [recipeId]);
 
-  const recipeData = useSelector((state) => state.recipes.recipes[recipeId]);
+  // const recipeData = useSelector((state) => state.recipes.recipes[recipeId]);
   if (!isNew) {
-    dispatch(updateSteps(recipeData.steps));
+    dispatch(setCurrentRecipe(recipeId));
   }
-  const recipeSections = useSelector((state) => state.recipes.recipeSteps);
-  const sectionArray = Object.values(recipeSections);
-  // TODO may cause issues
+  const currentRecipe = useSelector((state) => state.recipes.currentRecipe);
 
+  // TODO merge form data with state. Collect required data from form
   const onSubmit = async (recipeData) => {
     var submitAction = function () {
       return isNew
@@ -100,21 +100,36 @@ const RecipeAddEdit = (props) => {
     );
   };
 
-  const onDragEnd = () => {};
+  const onDragEnd = ({ destination, source, draggableId }) => {
+    if (!destination) {
+      return;
+    }
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+    dispatch(ingredientsMoved(destination, source, draggableId));
+  };
 
-  const renderSections = sectionArray.map((recipeSection) => {
+  const renderSections = currentRecipe.sections.allIds.map((sectionId) => {
+    const recipeSection = currentRecipe.sections.byId[sectionId];
+    console.log(recipeSection.id);
     return (
       <div key={recipeSection.id}>
         {/* <Field>{recipeSection.sectionName}</Field> */}
         <h4>Ingredients</h4>
 
-        <Droppable droppableId={"section" + recipeSection.id}>
+        <Droppable droppableId={recipeSection.id.toString()}>
           {(provided) => (
             <Ingredients
               innerRef={provided.innerRef}
               {...provided.droppableProps}
-              ingredients={recipeSection.ingredients}
+              ingredients={currentRecipe.ingredients}
+              ingredientOrder={recipeSection.ingredients}
               placeholder={provided.placeholder}
+              sectionId={recipeSection.id}
             />
           )}
         </Droppable>
@@ -126,7 +141,8 @@ const RecipeAddEdit = (props) => {
 
   return (
     <Form
-      initialValues={recipeData}
+      // FIXME intitial values
+      // initialValues={recipeData}
       onSubmit={onSubmit}
       validate={validate}
       render={({ handleSubmit }) => (

@@ -1,19 +1,21 @@
 import React from "react";
 import RecipeIngredient from "./Ingredient";
+import IngredientCreate from "./IngredientCreate";
 
 const RecipeIngredients = (props) => {
-  const ingredientArray = Object.values(props.ingredients);
   return (
-    <ul ref={props.innerRef}>
-      {ingredientArray.map((ingredient, index) => (
+    // TODO make ul?
+    <div className="ui relaxed list" ref={props.innerRef}>
+      {props.ingredientOrder.map((ingredientId, index) => (
         <RecipeIngredient
-          ingredient={ingredient}
+          ingredient={props.ingredients.byId[ingredientId]}
           index={index}
-          key={ingredient.id}
+          key={ingredientId}
         />
       ))}
       {props.placeholder}
-    </ul>
+      <IngredientCreate sectionId={props.sectionId} />
+    </div>
   );
 };
 
