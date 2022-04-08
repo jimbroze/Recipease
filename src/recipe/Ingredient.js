@@ -1,10 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
+import { useDispatch, useSelector } from "react-redux";
+import { Form, Field } from "react-final-form";
 
 const RecipeIngredient = (props) => {
-  console.log(props.ingredient);
+  const isNew = props.index === props.fields.length - 1;
+
+  const onIngredientEnter = (fields) => (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    event.target.blur();
+  };
+
+  const onBlur = (fields) => (event) => {
+    if (event.target.value.trim() === "") {
+      if (!isNew) {
+        fields.remove(props.index);
+      }
+    } else if (isNew) {
+      fields.push(null);
+    }
+  };
+
   return (
-    <Draggable draggableId={props.ingredient.id.toString()} index={props.index}>
+    <Draggable
+      // FIXME still moves when disabled
+      isDragDisabled={isNew}
+      draggableId={props.id}
+      index={props.index}
+    >
       {(provided) => (
         <div
           className="item"
@@ -13,7 +37,19 @@ const RecipeIngredient = (props) => {
           {...provided.dragHandleProps}
         >
           <i className="utensil spoon icon"></i>
-          <div className="content">{props.ingredient.name}</div>
+          <div className="content">
+            <Field name={`${props.id}.ingredient`}>
+              {({ input, meta }) => (
+                <input
+                  {...input}
+                  type="text"
+                  placeholder="Add an ingredient"
+                  onKeyPress={onIngredientEnter(props.fields)}
+                  onBlur={onBlur(props.fields)}
+                />
+              )}
+            </Field>
+          </div>
         </div>
       )}
     </Draggable>
