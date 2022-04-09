@@ -6,11 +6,7 @@ const initialState = {
   // TODO change to currentRecipe
   currentRecipe: {
     ingredients: {
-      byId: {
-        1: {
-          id: 1,
-        },
-      },
+      byId: {},
       allIds: [],
       nextId: 1,
     },
@@ -79,21 +75,33 @@ const recipeSlice = createSlice({
     },
     ingredientAdded: {
       reducer(state, action) {
-        console.log(action.payload);
-        const { sectionId, ingredientName } = action.payload;
+        const { sectionId, ingredientText } = action.payload;
         const nextId = state.currentRecipe.ingredients.nextId;
 
         state.currentRecipe.ingredients.byId[nextId] = {
           id: nextId,
-          name: ingredientName,
+          text: ingredientText,
         };
         state.currentRecipe.ingredients.allIds.push(nextId);
         state.currentRecipe.sections.byId[sectionId].ingredients.push(nextId);
         state.currentRecipe.ingredients.nextId++;
       },
-      prepare(sectionId, ingredientName) {
+      prepare(sectionId, ingredientText) {
         return {
-          payload: { sectionId, ingredientName },
+          payload: { sectionId, ingredientText },
+        };
+      },
+    },
+    ingredientUpdated: {
+      reducer(state, action) {
+        const { ingredientId, ingredientText } = action.payload;
+
+        state.currentRecipe.ingredients.byId[ingredientId].text =
+          ingredientText;
+      },
+      prepare(ingredientId, ingredientText) {
+        return {
+          payload: { ingredientId, ingredientText },
         };
       },
     },
@@ -191,6 +199,7 @@ const recipeSlice = createSlice({
 export const {
   setCurrentRecipe,
   ingredientAdded,
+  ingredientUpdated,
   ingredientsMoved,
   setUpdateStatus,
 } = recipeSlice.actions;
