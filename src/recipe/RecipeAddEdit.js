@@ -2,8 +2,6 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form, Field } from "react-final-form";
-import arrayMutators from "final-form-arrays";
-import { FieldArray } from "react-final-form-arrays";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 import Ingredients from "./Ingredients";
@@ -27,7 +25,6 @@ const RecipeAddEdit = (props) => {
   const isNew = !recipeId;
   const canSave = updateStatus === "idle";
 
-  // FIXME error in fetch refreshes form on new recipe form
   useEffect(() => {
     dispatch(fetchRecipe(recipeId));
   }, [recipeId]);
@@ -39,7 +36,6 @@ const RecipeAddEdit = (props) => {
   const currentRecipe = useSelector((state) => state.recipes.currentRecipe);
 
   // TODO merge form data with state. Collect required data from form
-  // TODO Remove empty ingredient on save
   const onSubmit = async (recipeData) => {
     var submitAction = function () {
       return isNew
@@ -104,92 +100,52 @@ const RecipeAddEdit = (props) => {
     );
   };
 
-  // const onDragEnd = ({ destination, source, draggableId }) => {
-  //   if (!destination) {
-  //     return;
-  //   }
-  //   if (
-  //     destination.droppableId === source.droppableId &&
-  //     destination.index === source.index
-  //   ) {
-  //     return;
-  //   }
-  //   dispatch(ingredientsMoved(destination, source, draggableId));
-  // };
-
-  const onDragEnd =
-    (insert, remove) =>
-    ({ destination, source, draggableId }) => {
-      // dropped outside the list
-      if (!destination) {
-        return;
-      }
-      if (
-        destination.droppableId === source.droppableId &&
-        destination.index === source.index
-      ) {
-        return;
-      }
-
-      remove(`Ingredients.${source.droppableId}`, source.index);
-      insert(
-        `Ingredients.${destination.droppableId}`,
-        destination.index,
-        draggableId
-      );
-    };
+  const onDragEnd = ({ destination, source, draggableId }) => {
+    if (!destination) {
+      return;
+    }
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+    dispatch(ingredientsMoved(destination, source, draggableId));
+  };
 
   const renderSections = currentRecipe.sections.allIds.map((sectionId) => {
-    // const recipeSection = currentRecipe.sections.byId[sectionId];
-    const recipeSection = { id: 0 };
+    const recipeSection = currentRecipe.sections.byId[sectionId];
     console.log(recipeSection.id);
     return (
       <div key={recipeSection.id}>
         {/* <Field>{recipeSection.sectionName}</Field> */}
         <h4>Ingredients</h4>
-        <Ingredients
-          // innerRef={provided.innerRef}
-          // {...provided.droppableProps}
-          // ingredients={currentRecipe.ingredients}
-          // placeholder={provided.placeholder}
-          sectionId={recipeSection.id}
-        />
+
+        <Droppable droppableId={recipeSection.id.toString()}>
+          {(provided) => (
+            <Ingredients
+              innerRef={provided.innerRef}
+              {...provided.droppableProps}
+              ingredients={currentRecipe.ingredients}
+              ingredientOrder={recipeSection.ingredients}
+              placeholder={provided.placeholder}
+              sectionId={recipeSection.id}
+            />
+          )}
+        </Droppable>
+
         {/* <Instructions /> */}
       </div>
     );
   });
 
-  const logValues = (values) => {
-    console.log(values);
-  };
-
-  const initValues = {
-    ingredients: [null],
-  };
-
   return (
     <Form
       // FIXME intitial values
       // initialValues={recipeData}
-      initialValues={initValues}
-      // subscription={{}}
-      // onSubmit={onSubmit}
-      onSubmit={logValues}
+      onSubmit={onSubmit}
       validate={validate}
-      mutators={{
-        // potentially other mutators could be merged here
-        ...arrayMutators,
-      }}
-      render={({
-        handleSubmit,
-        form: {
-          mutators: { push, pop, insert, remove },
-        },
-        pristine,
-        form,
-        submitting,
-        values,
-      }) => (
+      render={({ handleSubmit }) => (
         <form onSubmit={handleSubmit} className="ui form error">
           {renderFormError()}
           <Field name="title" component={renderInput} label="Enter Title" />
@@ -200,7 +156,7 @@ const RecipeAddEdit = (props) => {
           />
           {/* <Field name="steps" component={} label="" /> */}
           <h3>Steps</h3>
-          <DragDropContext onDragEnd={onDragEnd(insert, remove)}>
+          <DragDropContext onDragEnd={onDragEnd}>
             {renderSections}
           </DragDropContext>
           <button className="ui button primary" type="submit">

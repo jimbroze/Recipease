@@ -12,11 +12,10 @@ const IngredientCreate = (props) => {
     setNewIngredient(event.target.value);
   };
 
-  const onIngredientEnter = (onSubmit) => (event) => {
+  const onIngredientEnter = (event) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
-    // dispatch(ingredientAdded(props.sectionId, newIngredient));
-    onSubmit();
+    dispatch(ingredientAdded(props.sectionId, newIngredient));
     setNewIngredient("");
   };
 
@@ -29,7 +28,7 @@ const IngredientCreate = (props) => {
             type="text"
             placeholder="Add an ingredient"
             onChange={onIngredientChange}
-            onKeyPress={onIngredientEnter(props.onSubmit)}
+            onKeyPress={onIngredientEnter}
             value={newIngredient}
           />
         </div>
