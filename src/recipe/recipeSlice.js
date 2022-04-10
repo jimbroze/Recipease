@@ -105,6 +105,33 @@ const recipeSlice = createSlice({
         };
       },
     },
+    ingredientRemoved: {
+      reducer(state, action) {
+        const { ingredientId, sectionId, stepId } = action.payload;
+
+        delete state.currentRecipe.ingredients.byId[ingredientId];
+
+        const ingredientIndex =
+          state.currentRecipe.ingredients.allIds.indexOf(ingredientId);
+        state.currentRecipe.ingredients.allIds.splice(ingredientIndex, 1);
+
+        if (sectionId) {
+          const ingredientIndex =
+            state.currentRecipe.sections.byId[sectionId].ingredients.indexOf(
+              ingredientId
+            );
+          state.currentRecipe.sections.byId[sectionId].ingredients.splice(
+            ingredientIndex,
+            1
+          );
+        }
+      },
+      prepare(ingredientId, sectionId, stepId) {
+        return {
+          payload: { ingredientId, sectionId, stepId },
+        };
+      },
+    },
     ingredientsMoved: {
       reducer(state, action) {
         const { destSection, sourceSection, ingredientId } = action.payload;
@@ -200,6 +227,7 @@ export const {
   setCurrentRecipe,
   ingredientAdded,
   ingredientUpdated,
+  ingredientRemoved,
   ingredientsMoved,
   setUpdateStatus,
 } = recipeSlice.actions;

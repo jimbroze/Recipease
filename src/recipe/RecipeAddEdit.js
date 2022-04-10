@@ -115,7 +115,6 @@ const RecipeAddEdit = (props) => {
 
   const renderSections = currentRecipe.sections.allIds.map((sectionId) => {
     const recipeSection = currentRecipe.sections.byId[sectionId];
-    console.log(recipeSection.id);
     return (
       <div key={recipeSection.id}>
         {/* <Field>{recipeSection.sectionName}</Field> */}
@@ -126,8 +125,6 @@ const RecipeAddEdit = (props) => {
             <Ingredients
               innerRef={provided.innerRef}
               {...provided.droppableProps}
-              ingredients={currentRecipe.ingredients}
-              ingredientOrder={recipeSection.ingredients}
               placeholder={provided.placeholder}
               sectionId={recipeSection.id}
             />

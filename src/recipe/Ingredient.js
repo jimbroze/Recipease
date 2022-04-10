@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Field } from "react-final-form";
 
-import { ingredientAdded, ingredientUpdated } from "./recipeSlice";
+import {
+  ingredientAdded,
+  ingredientUpdated,
+  ingredientRemoved,
+} from "./recipeSlice";
 
 const RecipeIngredient = (props) => {
   const dispatch = useDispatch();
@@ -10,8 +14,9 @@ const RecipeIngredient = (props) => {
     (state) => state.recipes.currentRecipe.ingredients.byId[props.ingredientId]
   );
   const isNew = !props.ingredientId;
-  const initIngredient = ingredient || { text: "" };
-  const [ingredientText, setIngredientText] = useState(initIngredient.text);
+  const [ingredientText, setIngredientText] = useState(
+    (ingredient || { text: "" }).text
+  );
   const [isEditing, setIsEditing] = useState(isNew);
 
   const onIngredientChange = (event) => {
@@ -25,7 +30,11 @@ const RecipeIngredient = (props) => {
   };
 
   const onBlur = (event) => {
-    if (isNew) {
+    if (event.target.value.trim() === "") {
+      if (!isNew) {
+        dispatch(ingredientRemoved(props.ingredientId, props.sectionId));
+      }
+    } else if (isNew) {
       dispatch(ingredientAdded(props.sectionId, ingredientText));
       setIngredientText("");
     } else {
@@ -52,6 +61,7 @@ const RecipeIngredient = (props) => {
               onChange={onIngredientChange}
               onKeyPress={onIngredientEnter}
               onBlur={onBlur}
+              autoFocus={!isNew}
               value={ingredientText}
             />
           </div>
