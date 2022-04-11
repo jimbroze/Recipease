@@ -12,7 +12,7 @@ const RecipeIngredients = (props) => {
 
   return (
     // TODO make ul?
-    <div className="ui relaxed list" ref={props.innerRef}>
+    <div className="ui relaxed celled selection list" ref={props.innerRef}>
       {ingredients.map((ingredientId, index) => (
         <Draggable
           draggableId={ingredientId.toString()}

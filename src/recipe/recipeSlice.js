@@ -5,6 +5,10 @@ const initialState = {
   recipes: {},
   // TODO change to currentRecipe
   currentRecipe: {
+    meta: {
+      title: "",
+      description: "",
+    },
     ingredients: {
       byId: {},
       allIds: [],

@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Form, Field } from "react-final-form";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import { useForm } from "react-hook-form";
 
 import Ingredients from "./Ingredients";
+import ErrorSummary from "../common/ErrorSummary";
 
 import {
   fetchRecipe,
@@ -19,6 +20,13 @@ const RecipeAddEdit = (props) => {
   const dispatch = useDispatch();
   let navigate = useNavigate();
   let params = useParams();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm({ mode: "onBlur" });
+
   const { updateStatus, error } = useSelector((state) => state.recipes);
 
   const recipeId = params.recipeId;
@@ -56,49 +64,41 @@ const RecipeAddEdit = (props) => {
     }
   };
 
-  const renderFormError = () => {
-    if (error)
+  const renderError = (name) => {
+    if (errors[name]) {
       return (
-        <div className="ui error message">
-          <div className="header">{error}</div>
-        </div>
-      );
-  };
-
-  const validate = (formValues) => {
-    const errors = {};
-
-    if (!formValues.title) {
-      errors.title = "Please give your recipe a title";
-    }
-
-    if (!formValues.description) {
-      errors.description = "Please give your recipe a description";
-    }
-
-    return errors;
-  };
-
-  const renderError = ({ error, touched }) => {
-    if (touched && error) {
-      return (
-        <div className="ui error message">
-          <div className="header">{error}</div>
+        <div className="ui pointing red basic label">
+          {/* <div className="ui error message"> */}
+          <div className="header">{errors[name]?.message}</div>
         </div>
       );
     }
   };
 
-  const renderInput = ({ input, label, meta }) => {
-    const className = `field ${meta.error && meta.touched ? "error" : ""}`;
+  const Input = ({ type, name, label, required }) => {
+    const InputType = type || "input";
+    const className = `field ${errors[name] ? "error" : ""}`;
     return (
       <div className={className}>
         <label>{label}</label>
-        <input {...input} autoComplete="off" />
-        {renderError(meta)}
+        <InputType
+          type={type || "text"}
+          {...register(name, {
+            required: {
+              value: required || false,
+              message: `Please give your recipe a ${name}`,
+            },
+          })}
+          autoComplete="off"
+        />
+        {renderError(name)}
       </div>
     );
   };
+  // To fire onchange:
+  // register('name', {
+  //   onChange: (e) => console.log(e)
+  // })
 
   const onDragEnd = ({ destination, source, draggableId }) => {
     if (!destination) {
@@ -137,31 +137,18 @@ const RecipeAddEdit = (props) => {
   });
 
   return (
-    <Form
-      // FIXME intitial values
-      // initialValues={recipeData}
-      onSubmit={onSubmit}
-      validate={validate}
-      render={({ handleSubmit }) => (
-        <form onSubmit={handleSubmit} className="ui form error">
-          {renderFormError()}
-          <Field name="title" component={renderInput} label="Enter Title" />
-          <Field
-            name="description"
-            component={renderInput}
-            label="Enter Description"
-          />
-          {/* <Field name="steps" component={} label="" /> */}
-          <h3>Steps</h3>
-          <DragDropContext onDragEnd={onDragEnd}>
-            {renderSections}
-          </DragDropContext>
-          <button className="ui button primary" type="submit">
-            Submit
-          </button>
-        </form>
-      )}
-    />
+    // FIXME intitial values
+    <form onSubmit={handleSubmit(onSubmit)} className="ui form error">
+      {/* <ErrorSummary errors={errors} /> */}
+      <Input name="title" label="Enter Title" required />
+      <Input type="textarea" name="description" label="Enter Description" />
+
+      <h3>Steps</h3>
+      <DragDropContext onDragEnd={onDragEnd}>{renderSections}</DragDropContext>
+      <button className="ui button primary" type="submit">
+        Submit
+      </button>
+    </form>
   );
 };
 

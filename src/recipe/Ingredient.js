@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Field } from "react-final-form";
 
 import {
   ingredientAdded,
@@ -45,40 +44,44 @@ const RecipeIngredient = (props) => {
 
   const renderIngredientText = () => {
     if (!props.isEditable) {
-      return <span>{ingredientText}</span>;
+      return <p>{ingredientText}</p>;
     }
     if (!isEditing) {
-      return <span onClick={() => setIsEditing(true)}>{ingredientText}</span>;
+      return <p onClick={() => setIsEditing(true)}>{ingredientText}</p>;
+    }
+  };
+
+  const renderIngredientContent = () => {
+    if (props.isEditable && isEditing) {
+      return (
+        <div className="field">
+          <input
+            placeholder="Add an ingredient"
+            onChange={onIngredientChange}
+            onKeyPress={onIngredientEnter}
+            onBlur={onBlur}
+            autoFocus={!isNew}
+            value={ingredientText}
+          />
+        </div>
+      );
     }
     return (
-      <Field name="ingredient">
-        {({ input, meta }) => (
-          <div className="field">
-            <input
-              {...input}
-              type="text"
-              placeholder="Add an ingredient"
-              onChange={onIngredientChange}
-              onKeyPress={onIngredientEnter}
-              onBlur={onBlur}
-              autoFocus={!isNew}
-              value={ingredientText}
-            />
+      <>
+        <div className="right floated content">
+          <div className="ui negative basic icon button">
+            <i className="close icon"></i>
           </div>
-        )}
-      </Field>
+        </div>
+        <div className="header">{renderIngredientText()}</div>
+      </>
     );
   };
 
   return (
-    <div
-      className="item"
-      ref={props.innerRef}
-      {...props.draggableProps}
-      {...props.dragHandleProps}
-    >
-      <i className="utensil spoon icon"></i>
-      <div className="content">{renderIngredientText()}</div>
+    <div className="item" ref={props.innerRef} {...props.draggableProps}>
+      <i {...props.dragHandleProps} className="arrows alternate icon large"></i>
+      <div className="middle aligned content">{renderIngredientContent()}</div>
     </div>
   );
 };
