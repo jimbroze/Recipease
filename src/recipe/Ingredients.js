@@ -3,12 +3,15 @@ import { Draggable } from "react-beautiful-dnd";
 import { useDispatch, useSelector } from "react-redux";
 
 import RecipeIngredient from "./Ingredient";
+import { stepsSelectors, ingredientsSelectors } from "./currentRecipeSlice";
 
 const RecipeIngredients = (props) => {
-  const ingredients = useSelector(
-    (state) =>
-      state.recipes.currentRecipe.sections.byId[props.sectionId].ingredients
-  );
+  const ingredients = useSelector((state) => {
+    if (props.stepId) {
+      return stepsSelectors.selectById(state, props.stepId).ingredients;
+    }
+    return ingredientsSelectors.selectIds(state);
+  });
 
   return (
     // TODO make ul?
@@ -21,7 +24,7 @@ const RecipeIngredients = (props) => {
         >
           {(provided) => (
             <RecipeIngredient
-              sectionId={props.sectionId}
+              stepId={props.stepId}
               ingredientId={ingredientId}
               isEditable={true}
               innerRef={provided.innerRef}
@@ -32,7 +35,7 @@ const RecipeIngredients = (props) => {
         </Draggable>
       ))}
       {props.placeholder}
-      <RecipeIngredient sectionId={props.sectionId} isEditable={true} />
+      <RecipeIngredient stepId={props.stepId} isEditable={true} />
     </div>
   );
 };

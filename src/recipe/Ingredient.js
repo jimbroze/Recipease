@@ -2,15 +2,16 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
+  ingredientsSelectors,
   ingredientAdded,
   ingredientUpdated,
   ingredientRemoved,
-} from "./recipeSlice";
+} from "./currentRecipeSlice";
 
 const RecipeIngredient = (props) => {
   const dispatch = useDispatch();
-  const ingredient = useSelector(
-    (state) => state.recipes.currentRecipe.ingredients.byId[props.ingredientId]
+  const ingredient = useSelector((state) =>
+    ingredientsSelectors.selectById(state, props.ingredientId)
   );
   const isNew = !props.ingredientId;
   const [ingredientText, setIngredientText] = useState(
@@ -31,13 +32,25 @@ const RecipeIngredient = (props) => {
   const onBlur = (event) => {
     if (event.target.value.trim() === "") {
       if (!isNew) {
-        dispatch(ingredientRemoved(props.ingredientId, props.sectionId));
+        dispatch(
+          ingredientRemoved({
+            ingredientId: props.ingredientId,
+            stepId: props.stepId,
+          })
+        );
       }
     } else if (isNew) {
-      dispatch(ingredientAdded(props.sectionId, ingredientText));
+      dispatch(
+        ingredientAdded({
+          ingredient: { text: ingredientText },
+          stepId: props.stepId,
+        })
+      );
       setIngredientText("");
     } else {
-      dispatch(ingredientUpdated(props.ingredientId, ingredientText));
+      dispatch(
+        ingredientUpdated({ id: props.ingredientId, text: ingredientText })
+      );
       setIsEditing(false);
     }
   };

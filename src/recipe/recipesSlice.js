@@ -3,28 +3,6 @@ import recipease from "../api/recipease";
 
 const initialState = {
   recipes: {},
-  // TODO change to currentRecipe
-  currentRecipe: {
-    meta: {
-      title: "",
-      description: "",
-    },
-    ingredients: {
-      byId: {},
-      allIds: [],
-      nextId: 1,
-    },
-    sections: {
-      byId: {
-        1: {
-          id: 1,
-          ingredients: [],
-        },
-      },
-      allIds: [1],
-      nextId: 2,
-    },
-  },
   updateStatus: "idle",
   error: "",
 };
@@ -73,91 +51,6 @@ const recipeSlice = createSlice({
   name: "recipes",
   initialState,
   reducers: {
-    setCurrentRecipe(state, action) {
-      //TODO is this needed?
-      state.currentRecipe = state.recipes.byId[action.payload];
-    },
-    ingredientAdded: {
-      reducer(state, action) {
-        const { sectionId, ingredientText } = action.payload;
-        const nextId = state.currentRecipe.ingredients.nextId;
-
-        state.currentRecipe.ingredients.byId[nextId] = {
-          id: nextId,
-          text: ingredientText,
-        };
-        state.currentRecipe.ingredients.allIds.push(nextId);
-        state.currentRecipe.sections.byId[sectionId].ingredients.push(nextId);
-        state.currentRecipe.ingredients.nextId++;
-      },
-      prepare(sectionId, ingredientText) {
-        return {
-          payload: { sectionId, ingredientText },
-        };
-      },
-    },
-    ingredientUpdated: {
-      reducer(state, action) {
-        const { ingredientId, ingredientText } = action.payload;
-
-        state.currentRecipe.ingredients.byId[ingredientId].text =
-          ingredientText;
-      },
-      prepare(ingredientId, ingredientText) {
-        return {
-          payload: { ingredientId, ingredientText },
-        };
-      },
-    },
-    ingredientRemoved: {
-      reducer(state, action) {
-        const { ingredientId, sectionId, stepId } = action.payload;
-
-        delete state.currentRecipe.ingredients.byId[ingredientId];
-
-        const ingredientIndex =
-          state.currentRecipe.ingredients.allIds.indexOf(ingredientId);
-        state.currentRecipe.ingredients.allIds.splice(ingredientIndex, 1);
-
-        if (sectionId) {
-          const ingredientIndex =
-            state.currentRecipe.sections.byId[sectionId].ingredients.indexOf(
-              ingredientId
-            );
-          state.currentRecipe.sections.byId[sectionId].ingredients.splice(
-            ingredientIndex,
-            1
-          );
-        }
-      },
-      prepare(ingredientId, sectionId, stepId) {
-        return {
-          payload: { ingredientId, sectionId, stepId },
-        };
-      },
-    },
-    ingredientsMoved: {
-      reducer(state, action) {
-        const { destSection, sourceSection, ingredientId } = action.payload;
-        // TODO currently only works with one list
-
-        const section =
-          state.currentRecipe.sections.byId[sourceSection.droppableId];
-        const newIngredientsList = Array.from(section.ingredients);
-        // Remove from list then add back in.
-        newIngredientsList.splice(sourceSection.index, 1);
-        newIngredientsList.splice(destSection.index, 0, ingredientId);
-
-        state.currentRecipe.sections.byId[
-          sourceSection.droppableId
-        ].ingredients = newIngredientsList;
-      },
-      prepare(destSection, sourceSection, ingredientId) {
-        return {
-          payload: { destSection, sourceSection, ingredientId },
-        };
-      },
-    },
     setUpdateStatus(state, action) {
       state.updateStatus = action.payload;
     },
@@ -227,13 +120,6 @@ const recipeSlice = createSlice({
   },
 });
 
-export const {
-  setCurrentRecipe,
-  ingredientAdded,
-  ingredientUpdated,
-  ingredientRemoved,
-  ingredientsMoved,
-  setUpdateStatus,
-} = recipeSlice.actions;
+export const { setCurrentRecipe, setUpdateStatus } = recipeSlice.actions;
 
 export default recipeSlice.reducer;

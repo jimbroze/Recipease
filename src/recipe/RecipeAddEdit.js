@@ -11,10 +11,13 @@ import {
   fetchRecipe,
   createRecipe,
   editRecipe,
+  setUpdateStatus,
+} from "./recipesSlice";
+import {
+  stepsSelectors,
   setCurrentRecipe,
   ingredientsMoved,
-  setUpdateStatus,
-} from "./recipeSlice";
+} from "./currentRecipeSlice";
 
 const RecipeAddEdit = (props) => {
   const dispatch = useDispatch();
@@ -37,11 +40,10 @@ const RecipeAddEdit = (props) => {
     dispatch(fetchRecipe(recipeId));
   }, [recipeId]);
 
-  // const recipeData = useSelector((state) => state.recipes.recipes[recipeId]);
   if (!isNew) {
     dispatch(setCurrentRecipe(recipeId));
   }
-  const currentRecipe = useSelector((state) => state.recipes.currentRecipe);
+  const stepsIds = useSelector((state) => stepsSelectors.selectIds(state));
 
   // TODO merge form data with state. Collect required data from form
   const onSubmit = async (recipeData) => {
@@ -110,23 +112,27 @@ const RecipeAddEdit = (props) => {
     ) {
       return;
     }
-    dispatch(ingredientsMoved(destination, source, draggableId));
+    dispatch(
+      ingredientsMoved({
+        destStep: destination,
+        sourceStep: source,
+        ingredientId: draggableId,
+      })
+    );
   };
 
-  const renderSections = currentRecipe.sections.allIds.map((sectionId) => {
-    const recipeSection = currentRecipe.sections.byId[sectionId];
+  const renderSections = stepsIds.map((stepId) => {
     return (
-      <div key={recipeSection.id}>
-        {/* <Field>{recipeSection.sectionName}</Field> */}
+      <div key={stepId}>
         <h4>Ingredients</h4>
 
-        <Droppable droppableId={recipeSection.id.toString()}>
+        <Droppable droppableId={stepId.toString()}>
           {(provided) => (
             <Ingredients
               innerRef={provided.innerRef}
               {...provided.droppableProps}
               placeholder={provided.placeholder}
-              sectionId={recipeSection.id}
+              stepId={stepId}
             />
           )}
         </Droppable>

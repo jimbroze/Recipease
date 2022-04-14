@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 
-import { fetchRecipe } from "./recipeSlice";
+import { fetchRecipe } from "./recipesSlice";
 
 const RecipeShow = (props) => {
   const dispatch = useDispatch();
@@ -14,7 +14,7 @@ const RecipeShow = (props) => {
     dispatch(fetchRecipe(recipeId));
   }, [recipeId]);
 
-  const recipe = useSelector((state) => state.recipes.recipes[recipeId]);
+  const recipe = useSelector((state) => state.recipes[recipeId]);
 
   return (
     <div>

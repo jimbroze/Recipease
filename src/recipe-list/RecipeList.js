@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
-import { fetchRecipes } from "../recipe/recipeSlice";
+import { fetchRecipes } from "../recipe/recipesSlice";
 
 const RecipeList = (props) => {
   const dispatch = useDispatch();
@@ -11,7 +11,7 @@ const RecipeList = (props) => {
     dispatch(fetchRecipes());
   }, []);
 
-  const recipes = useSelector((state) => state.recipes.recipes);
+  const recipes = useSelector((state) => state.recipes);
   const recipeArray = Object.values(recipes);
 
   const renderedRecipes = recipeArray.map((recipe) => {
