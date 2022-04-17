@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 
+import RecipeMethod from "./RecipeMethod";
 import Ingredients from "./Ingredients";
 import ErrorSummary from "../common/ErrorSummary";
 
@@ -13,11 +14,7 @@ import {
   editRecipe,
   setUpdateStatus,
 } from "./recipesSlice";
-import {
-  stepsSelectors,
-  setCurrentRecipe,
-  ingredientsMoved,
-} from "./currentRecipeSlice";
+import { setCurrentRecipe, ingredientsMoved } from "./currentRecipeSlice";
 
 const RecipeAddEdit = (props) => {
   const dispatch = useDispatch();
@@ -37,13 +34,20 @@ const RecipeAddEdit = (props) => {
   const canSave = updateStatus === "idle";
 
   useEffect(() => {
-    dispatch(fetchRecipe(recipeId));
-  }, [recipeId]);
+    async function fetchandSet() {
+      if (isNew) return;
 
-  if (!isNew) {
-    dispatch(setCurrentRecipe(recipeId));
-  }
-  const stepsIds = useSelector((state) => stepsSelectors.selectIds(state));
+      try {
+        var recipe = await dispatch(fetchRecipe(recipeId)).unwrap();
+      } catch (err) {
+        console.error("Failed to fetch the recipe: ", err);
+      } finally {
+        dispatch(setCurrentRecipe(recipe));
+      }
+    }
+
+    fetchandSet();
+  }, [recipeId]);
 
   // TODO merge form data with state. Collect required data from form
   const onSubmit = async (recipeData) => {
@@ -121,27 +125,6 @@ const RecipeAddEdit = (props) => {
     );
   };
 
-  const renderSections = stepsIds.map((stepId) => {
-    return (
-      <div key={stepId}>
-        <h4>Ingredients</h4>
-
-        <Droppable droppableId={stepId.toString()}>
-          {(provided) => (
-            <Ingredients
-              innerRef={provided.innerRef}
-              {...provided.droppableProps}
-              placeholder={provided.placeholder}
-              stepId={stepId}
-            />
-          )}
-        </Droppable>
-
-        {/* <Instructions /> */}
-      </div>
-    );
-  });
-
   return (
     // FIXME intitial values
     <form onSubmit={handleSubmit(onSubmit)} className="ui form error">
@@ -149,8 +132,12 @@ const RecipeAddEdit = (props) => {
       <Input name="title" label="Enter Title" required />
       <Input type="textarea" name="description" label="Enter Description" />
 
-      <h3>Steps</h3>
-      <DragDropContext onDragEnd={onDragEnd}>{renderSections}</DragDropContext>
+      <DragDropContext onDragEnd={onDragEnd}>
+        {/* <h3>Ingredients</h3>
+        <Ingredients /> */}
+        <h3>Method</h3>
+        <RecipeMethod />
+      </DragDropContext>
       <button className="ui button primary" type="submit">
         Submit
       </button>
