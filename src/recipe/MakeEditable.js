@@ -3,11 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 
 const MakeEditable = (
   WrappedComponent,
-  InputType,
   entitySelector,
   entityActions,
-  containerId,
-  placeholder
+  placeholder,
+  inputType,
+  inputProps
 ) => {
   function getDisplayName(WrappedComponent) {
     return WrappedComponent.displayName || WrappedComponent.name || "Component";
@@ -28,8 +28,10 @@ const MakeEditable = (
 
     const componentName = getDisplayName(WrappedComponent).toLowerCase();
 
+    const InputType = inputType || "input";
+
     const removeEntity = () => {
-      dispatch(removeAction(props.id, containerId));
+      dispatch(removeAction(props.id, props.containerId));
     };
 
     const onChange = (event) => {
@@ -48,7 +50,7 @@ const MakeEditable = (
           removeEntity();
         }
       } else if (isNew) {
-        dispatch(addAction({ text }, containerId));
+        dispatch(addAction({ text }, props.containerId));
         setText("");
       } else {
         dispatch(updateAction({ id: props.id, text }));
@@ -71,6 +73,7 @@ const MakeEditable = (
             onBlur={onBlur}
             autoFocus={!isNew}
             value={text}
+            {...inputProps}
           />
         </div>
       );

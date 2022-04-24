@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import { DragDropContext } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 
 import RecipeMethod from "./RecipeMethod";
-import Ingredients from "./Ingredients";
+// import Ingredients from "./Ingredients";
 import ErrorSummary from "../common/ErrorSummary";
 
 import {
@@ -14,7 +14,11 @@ import {
   editRecipe,
   setUpdateStatus,
 } from "./recipesSlice";
-import { setCurrentRecipe, ingredientsMoved } from "./currentRecipeSlice";
+import {
+  setCurrentRecipe,
+  ingredientsMoved,
+  stepsMoved,
+} from "./currentRecipeSlice";
 
 const RecipeAddEdit = (props) => {
   const dispatch = useDispatch();
@@ -106,7 +110,7 @@ const RecipeAddEdit = (props) => {
   //   onChange: (e) => console.log(e)
   // })
 
-  const onDragEnd = ({ destination, source, draggableId }) => {
+  const onDragEnd = ({ destination, source, draggableId, type }) => {
     if (!destination) {
       return;
     }
@@ -116,11 +120,12 @@ const RecipeAddEdit = (props) => {
     ) {
       return;
     }
+    const moveAction = type === "ingredients" ? ingredientsMoved : stepsMoved;
     dispatch(
-      ingredientsMoved({
-        destStep: destination,
-        sourceStep: source,
-        ingredientId: draggableId,
+      moveAction({
+        destination,
+        source,
+        id: draggableId,
       })
     );
   };
@@ -129,8 +134,13 @@ const RecipeAddEdit = (props) => {
     // FIXME intitial values
     <form onSubmit={handleSubmit(onSubmit)} className="ui form error">
       {/* <ErrorSummary errors={errors} /> */}
-      <Input name="title" label="Enter Title" required />
-      <Input type="textarea" name="description" label="Enter Description" />
+      <Input name="title" label="Title" required />
+      <Input type="textarea" name="description" label="Description" />
+
+      {/* <div class="meta">
+        <span class="price">$1200</span>
+        <span class="stay">1 Month</span>
+      </div> */}
 
       <DragDropContext onDragEnd={onDragEnd}>
         {/* <h3>Ingredients</h3>

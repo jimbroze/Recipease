@@ -1,18 +1,17 @@
 import React from "react";
-import { useSelector } from "react-redux";
 
-import { stepsSelectors } from "./currentRecipeSlice";
+const Instruction = ({ children, instruction, onClick }) => {
+  // const step = useSelector((state) =>
+  //   stepsSelectors.selectById(state, props.stepId)
+  // );
 
-const Instruction = (props) => {
-  const step = useSelector((state) =>
-    stepsSelectors.selectById(state, props.stepId)
-  );
-
-  return (
-    <div>
-      <p>{step.instruction}</p>
+  const instructionContent = children || (
+    <div className="header">
+      <p onClick={onClick}>{instruction.text}</p>
     </div>
   );
+
+  return <div>{instructionContent}</div>;
 };
 
 export default Instruction;

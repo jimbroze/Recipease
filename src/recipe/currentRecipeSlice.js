@@ -32,10 +32,11 @@ const initialState = {
   title: "",
   description: "",
   sections: sectionsAdapter.getInitialState(),
-  steps: stepsAdapter.getInitialState({
-    ids: ["step1"],
-    entities: { step1: { id: "step1", ingredients: [] } },
-  }),
+  steps: stepsAdapter.getInitialState(),
+  // steps: stepsAdapter.getInitialState({
+  //   ids: ["step1"],
+  //   entities: { step1: { id: "step1", ingredients: [] } },
+  // }),
   ingredients: ingredientsAdapter.getInitialState(),
   nextId: 2,
 };
@@ -48,6 +49,36 @@ const currentRecipeSlice = createSlice({
       //TODO is this needed?
       state = action.payload;
     },
+    stepAdded(state, action) {
+      const stepId = `step${state.nextId}`;
+
+      stepsAdapter.addOne(state.steps, {
+        id: stepId,
+        ingredients: [],
+        ...action.payload,
+      });
+
+      state.nextId++;
+    },
+    stepUpdated(state, action) {
+      stepsAdapter.upsertOne(state.steps, action.payload);
+    },
+    stepRemoved(state, action) {
+      const stepId = action.payload;
+
+      stepsAdapter.removeOne(state.steps, stepId);
+    },
+    stepsMoved(state, action) {
+      const { destination, source, id } = action.payload;
+
+      const stepList = Array.from(state.steps.ids);
+
+      // Remove from list then add back in.
+      stepList.splice(source.index, 1);
+      stepList.splice(destination.index, 0, id);
+
+      state.steps.ids = stepList;
+    },
     ingredientAdded: {
       reducer(state, action) {
         const { ingredient, stepId } = action.payload;
@@ -57,7 +88,6 @@ const currentRecipeSlice = createSlice({
           id: ingredientId,
           ...ingredient,
         });
-
         if (stepId) {
           state.steps.entities[stepId].ingredients.push(ingredientId);
         }
@@ -87,23 +117,38 @@ const currentRecipeSlice = createSlice({
       },
     },
     ingredientsMoved(state, action) {
-      const { destStep, sourceStep, ingredientId } = action.payload;
-      // TODO currently only works with one list and only with ingredients.
+      const { destination, source, id } = action.payload;
+      // TODO currently only with ingredients.
 
-      const step = state.steps.entities[sourceStep.droppableId];
-      const newIngredientsList = Array.from(step.ingredients);
+      const newSourceList = Array.from(
+        state.steps.entities[source.droppableId].ingredients
+      );
+      var newDestList;
+
+      if (destination.droppableId === source.droppableId) {
+        newDestList = newSourceList;
+      } else {
+        newDestList = Array.from(
+          state.steps.entities[destination.droppableId].ingredients
+        );
+      }
+
       // Remove from list then add back in.
-      newIngredientsList.splice(sourceStep.index, 1);
-      newIngredientsList.splice(destStep.index, 0, ingredientId);
+      newSourceList.splice(source.index, 1);
+      newDestList.splice(destination.index, 0, id);
 
-      state.steps.entities[sourceStep.droppableId].ingredients =
-        newIngredientsList;
+      state.steps.entities[source.droppableId].ingredients = newSourceList;
+      state.steps.entities[destination.droppableId].ingredients = newDestList;
     },
   },
 });
 
 export const {
   setCurrentRecipe,
+  stepAdded,
+  stepUpdated,
+  stepRemoved,
+  stepsMoved,
   ingredientAdded,
   ingredientUpdated,
   ingredientRemoved,
@@ -114,6 +159,11 @@ export const ingredientActions = {
   addAction: ingredientAdded,
   updateAction: ingredientUpdated,
   removeAction: ingredientRemoved,
+};
+export const stepActions = {
+  addAction: stepAdded,
+  updateAction: stepUpdated,
+  removeAction: stepRemoved,
 };
 
 export default currentRecipeSlice.reducer;

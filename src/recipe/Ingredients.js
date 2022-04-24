@@ -10,30 +10,29 @@ import {
   ingredientActions,
 } from "./currentRecipeSlice";
 
-const RecipeIngredients = (props) => {
+const RecipeIngredients = ({ stepId }) => {
   const ingredients = useSelector((state) => {
-    if (props.stepId) {
-      return stepsSelectors.selectById(state, props.stepId).ingredients;
+    if (stepId) {
+      return stepsSelectors.selectById(state, stepId).ingredients;
     }
     return ingredientsSelectors.selectIds(state);
   });
 
-  const droppableId = props.stepId ? props.stepId : "AllIngredients";
+  const droppableId = stepId ? stepId : "AllIngredients";
 
   const EditableIngredient = MakeEditable(
     Ingredient,
-    "input",
     ingredientsSelectors,
     ingredientActions,
-    props.stepId,
     "Add a new ingredient"
   );
+
   return (
     // TODO make ul?
-    <Droppable droppableId={droppableId}>
+    <Droppable droppableId={droppableId} type="ingredients">
       {(provided) => (
         <div
-          className="ui relaxed celled selection list"
+          className="ui middle aligned relaxed celled selection list"
           ref={provided.innerRef}
           {...provided.droppableProps}
         >
@@ -42,10 +41,12 @@ const RecipeIngredients = (props) => {
               draggableId={ingredientId}
               index={index}
               key={ingredientId}
+              type="ingredients"
             >
               {(provided) => (
                 <EditableIngredient
                   id={ingredientId}
+                  containerId={stepId}
                   innerRef={provided.innerRef}
                   draggableProps={provided.draggableProps}
                   dragHandleProps={provided.dragHandleProps}
@@ -54,8 +55,8 @@ const RecipeIngredients = (props) => {
             </Draggable>
           ))}
           {provided.placeholder}
-          {/* <Ingredient stepId={props.stepId} isEditable={true} /> */}
-          <EditableIngredient />
+          {/* <Ingredient stepId={stepId} isEditable={true} /> */}
+          <EditableIngredient containerId={stepId} />
         </div>
       )}
     </Droppable>
