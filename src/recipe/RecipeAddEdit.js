@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import RecipeMethod from "./RecipeMethod";
 // import Ingredients from "./Ingredients";
 import ErrorSummary from "../common/ErrorSummary";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 import {
   useGetRecipeQuery,
@@ -25,12 +26,20 @@ const RecipeAddEdit = (props) => {
   let navigate = useNavigate();
   let params = useParams();
   const { userId } = useSelector((state) => state.auth);
-  const [pageErrors, setPageErrors] = useState([]);
-
-  const [createRecipe, { isloading: isLoadingAdd }] = useCreateRecipeMutation();
+  const [pageErrors, setPageErrors] = useState({});
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid, isDirty },
+    reset,
+  } = useForm({
+    mode: "onBlur",
+  });
+  const [createRecipe, { isLoading: isLoadingAdd }] = useCreateRecipeMutation();
   const [editRecipe, { isLoading: isLoadingEdit }] = useEditRecipeMutation();
   const isLoading = isLoadingAdd || isLoadingEdit;
-  const canSave = !isLoading;
+  const canSave = isValid && isDirty && !isLoading;
 
   const recipeId = params.recipeId;
   const isNew = !recipeId;
@@ -42,16 +51,6 @@ const RecipeAddEdit = (props) => {
     isError,
     error,
   } = useGetRecipeQuery(recipeId, { skip: isNew });
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-    reset,
-  } = useForm({
-    mode: "onBlur",
-  });
 
   useEffect(() => {
     // Populate initial form values
@@ -69,12 +68,20 @@ const RecipeAddEdit = (props) => {
     };
 
     if (canSave) {
+      setPageErrors((pageErrors) => {
+        const newPageErrors = { ...pageErrors };
+        delete newPageErrors["saveError"];
+        return newPageErrors;
+      });
       try {
         // var scope needed to use in finally block (hoisted)
         var recipe = await submitAction().unwrap();
       } catch (err) {
         console.error("Failed to save the recipe: ", err);
-        setPageErrors([{ message: "Failed to save the recipe" }]);
+        setPageErrors({
+          ...pageErrors,
+          saveError: { message: "Failed to save the recipe" },
+        });
       } finally {
         navigate(`/recipes/${recipe.id}`);
       }
@@ -136,7 +143,6 @@ const RecipeAddEdit = (props) => {
   const renderForm = () => {
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="ui form error">
-        <ErrorSummary errors={pageErrors} />
         <Input name="title" label="Title" required />
         <Input type="textarea" name="description" label="Description" />
 
@@ -151,7 +157,15 @@ const RecipeAddEdit = (props) => {
           <h3>Method</h3>
           <RecipeMethod />
         </DragDropContext>
-        <button className="ui button primary" type="submit">
+        <button
+          className={
+            "ui button " +
+            (isLoading ? "loading " : "") +
+            (canSave ? "" : "disabled ") +
+            "primary"
+          }
+          type="submit"
+        >
           Submit
         </button>
       </form>
@@ -159,19 +173,34 @@ const RecipeAddEdit = (props) => {
   };
 
   const renderContent = () => {
+    // TODO convert errors to global redux state
     if (isNew || isSuccess) {
+      if ("fetchError" in pageErrors) {
+        setPageErrors((pageErrors) => {
+          const newPageErrors = { ...pageErrors };
+          delete newPageErrors["fetchError"];
+          return newPageErrors;
+        });
+      }
       return renderForm();
     } else if (isFetching) {
-      return <div>loading</div>;
-      // TODO replace with loading spinner
-    } else if (isError) {
+      return <LoadingSpinner text="Loading recipe" />;
+    } else if (isError && !("fetchError" in pageErrors)) {
       console.log(`${error.status}: ${error.error}`);
-      setPageErrors([{ message: "Cannot fetch recipe" }]);
+      setPageErrors({
+        ...pageErrors,
+        fetchError: { message: "Cannot fetch recipe" },
+      });
       return <div></div>;
     }
   };
 
-  return <div>{renderContent()}</div>;
+  return (
+    <div>
+      <ErrorSummary errors={pageErrors} />
+      {renderContent()}
+    </div>
+  );
 };
 
 export default RecipeAddEdit;

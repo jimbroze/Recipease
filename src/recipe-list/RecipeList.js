@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import { useGetRecipesQuery } from "../api/apiSlice";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const RecipeList = (props) => {
   const {
@@ -31,7 +32,7 @@ const RecipeList = (props) => {
 
   const renderContent = () => {
     if (isLoading) {
-      return <div>loading</div>;
+      return <LoadingSpinner text="Loading recipes" />;
       // TODO replace with loading spinner
     } else if (isSuccess) {
       return renderRecipes();
