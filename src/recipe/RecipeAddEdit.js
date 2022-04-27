@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { DragDropContext } from "react-beautiful-dnd";
@@ -9,11 +9,11 @@ import RecipeMethod from "./RecipeMethod";
 import ErrorSummary from "../common/ErrorSummary";
 
 import {
-  fetchRecipe,
-  createRecipe,
-  editRecipe,
-  setUpdateStatus,
-} from "./recipesSlice";
+  useGetRecipeQuery,
+  useCreateRecipeMutation,
+  useEditRecipeMutation,
+} from "../api/apiSlice";
+
 import {
   setCurrentRecipe,
   ingredientsMoved,
@@ -24,51 +24,58 @@ const RecipeAddEdit = (props) => {
   const dispatch = useDispatch();
   let navigate = useNavigate();
   let params = useParams();
+  const { userId } = useSelector((state) => state.auth);
+  const [pageErrors, setPageErrors] = useState([]);
+
+  const [createRecipe, { isloading: isLoadingAdd }] = useCreateRecipeMutation();
+  const [editRecipe, { isLoading: isLoadingEdit }] = useEditRecipeMutation();
+  const isLoading = isLoadingAdd || isLoadingEdit;
+  const canSave = !isLoading;
+
+  const recipeId = params.recipeId;
+  const isNew = !recipeId;
+
+  const {
+    data: fetchedRecipe,
+    isFetching,
+    isSuccess,
+    isError,
+    error,
+  } = useGetRecipeQuery(recipeId, { skip: isNew });
+
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm({ mode: "onBlur" });
-
-  const { updateStatus, error } = useSelector((state) => state.recipes);
-
-  const recipeId = params.recipeId;
-  const isNew = !recipeId;
-  const canSave = updateStatus === "idle";
+    reset,
+  } = useForm({
+    mode: "onBlur",
+  });
 
   useEffect(() => {
-    async function fetchandSet() {
-      if (isNew) return;
-
-      try {
-        var recipe = await dispatch(fetchRecipe(recipeId)).unwrap();
-      } catch (err) {
-        console.error("Failed to fetch the recipe: ", err);
-      } finally {
-        dispatch(setCurrentRecipe(recipe));
-      }
+    // Populate initial form values
+    if (!isNew && fetchedRecipe) {
+      reset(fetchedRecipe);
     }
-
-    fetchandSet();
-  }, [recipeId]);
+  }, [fetchedRecipe]);
 
   // TODO merge form data with state. Collect required data from form
   const onSubmit = async (recipeData) => {
     var submitAction = function () {
       return isNew
-        ? createRecipe(recipeData)
-        : editRecipe(recipeId, recipeData);
+        ? createRecipe({ ...recipeData, userId })
+        : editRecipe(recipeData);
     };
 
     if (canSave) {
       try {
-        dispatch(setUpdateStatus("pending"));
-        var recipe = await dispatch(submitAction()).unwrap();
+        // var scope needed to use in finally block (hoisted)
+        var recipe = await submitAction().unwrap();
       } catch (err) {
         console.error("Failed to save the recipe: ", err);
+        setPageErrors([{ message: "Failed to save the recipe" }]);
       } finally {
-        dispatch(setUpdateStatus("idle"));
         navigate(`/recipes/${recipe.id}`);
       }
     }
@@ -105,10 +112,6 @@ const RecipeAddEdit = (props) => {
       </div>
     );
   };
-  // To fire onchange:
-  // register('name', {
-  //   onChange: (e) => console.log(e)
-  // })
 
   const onDragEnd = ({ destination, source, draggableId, type }) => {
     if (!destination) {
@@ -130,29 +133,45 @@ const RecipeAddEdit = (props) => {
     );
   };
 
-  return (
-    // FIXME intitial values
-    <form onSubmit={handleSubmit(onSubmit)} className="ui form error">
-      {/* <ErrorSummary errors={errors} /> */}
-      <Input name="title" label="Title" required />
-      <Input type="textarea" name="description" label="Description" />
+  const renderForm = () => {
+    return (
+      <form onSubmit={handleSubmit(onSubmit)} className="ui form error">
+        <ErrorSummary errors={pageErrors} />
+        <Input name="title" label="Title" required />
+        <Input type="textarea" name="description" label="Description" />
 
-      {/* <div class="meta">
+        {/* <div class="meta">
         <span class="price">$1200</span>
         <span class="stay">1 Month</span>
       </div> */}
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        {/* <h3>Ingredients</h3>
+        <DragDropContext onDragEnd={onDragEnd}>
+          {/* <h3>Ingredients</h3>
         <Ingredients /> */}
-        <h3>Method</h3>
-        <RecipeMethod />
-      </DragDropContext>
-      <button className="ui button primary" type="submit">
-        Submit
-      </button>
-    </form>
-  );
+          <h3>Method</h3>
+          <RecipeMethod />
+        </DragDropContext>
+        <button className="ui button primary" type="submit">
+          Submit
+        </button>
+      </form>
+    );
+  };
+
+  const renderContent = () => {
+    if (isNew || isSuccess) {
+      return renderForm();
+    } else if (isFetching) {
+      return <div>loading</div>;
+      // TODO replace with loading spinner
+    } else if (isError) {
+      console.log(`${error.status}: ${error.error}`);
+      setPageErrors([{ message: "Cannot fetch recipe" }]);
+      return <div></div>;
+    }
+  };
+
+  return <div>{renderContent()}</div>;
 };
 
 export default RecipeAddEdit;

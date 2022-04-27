@@ -46,8 +46,7 @@ const currentRecipeSlice = createSlice({
   initialState,
   reducers: {
     setCurrentRecipe(state, action) {
-      //TODO is this needed?
-      state = action.payload;
+      return Object.assign(state, action.payload);
     },
     stepAdded(state, action) {
       const stepId = `step${state.nextId}`;

@@ -1,32 +1,47 @@
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+// import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
-import { fetchRecipes } from "../recipe/recipesSlice";
+import { useGetRecipesQuery } from "../api/apiSlice";
 
 const RecipeList = (props) => {
-  const dispatch = useDispatch();
+  const {
+    data: recipes = [],
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+  } = useGetRecipesQuery();
 
-  useEffect(() => {
-    dispatch(fetchRecipes());
-  }, []);
-
-  const recipes = useSelector((state) => state.recipes);
-  const recipeArray = Object.values(recipes);
-
-  const renderedRecipes = recipeArray.map((recipe) => {
+  const renderRecipes = () => {
     return (
-      <div className="item" key={recipe.id}>
-        <div className="content">
-          <Link to={`/recipes/${recipe.id}`} className="header">
-            {recipe.title}
-          </Link>
-        </div>
+      <div className="ui celled list">
+        {recipes.map((recipe) => (
+          <div className="item" key={recipe.id}>
+            <div className="content">
+              <Link to={`/recipes/${recipe.id}`} className="header">
+                {recipe.title}
+              </Link>
+            </div>
+          </div>
+        ))}
       </div>
     );
-  });
+  };
 
-  const renderedCreate = () => {
+  const renderContent = () => {
+    if (isLoading) {
+      return <div>loading</div>;
+      // TODO replace with loading spinner
+    } else if (isSuccess) {
+      return renderRecipes();
+    } else if (isError) {
+      console.log(`${error.status}: ${error.error}`);
+      return <div>Error fetching recipes</div>;
+    }
+  };
+
+  const renderCreateButton = () => {
     return (
       <div style={{ textAlign: "center" }}>
         <Link to="/recipes/new" className="ui button primary">
@@ -38,9 +53,9 @@ const RecipeList = (props) => {
 
   return (
     <div>
-      {renderedCreate()}
+      {renderCreateButton()}
       <h2>Recipes</h2>
-      <div className="ui celled list">{renderedRecipes}</div>
+      {renderContent()}
     </div>
   );
 };

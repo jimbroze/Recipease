@@ -7,12 +7,13 @@ const ErrorSummary = (props) => {
 
   return (
     <div className="ui error message">
-      <div className="header">Errors</div>
+      <div className="header">
+        Error{Object.keys(props.errors).length > 1 ? "s" : ""}
+      </div>
       <ul className="list">
         {Object.keys(props.errors).map((error) => (
           <li key={error}>{props.errors[error]?.message}</li>
         ))}
-        {console.log(props.errors)}
       </ul>
     </div>
   );
