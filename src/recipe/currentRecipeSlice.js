@@ -29,8 +29,6 @@ const ingredientsAdapter = createEntityAdapter({
 // };
 
 const initialState = {
-  title: "",
-  description: "",
   sections: sectionsAdapter.getInitialState(),
   steps: stepsAdapter.getInitialState(),
   // steps: stepsAdapter.getInitialState({
@@ -117,7 +115,6 @@ const currentRecipeSlice = createSlice({
     },
     ingredientsMoved(state, action) {
       const { destination, source, id } = action.payload;
-      // TODO currently only with ingredients.
 
       const newSourceList = Array.from(
         state.steps.entities[source.droppableId].ingredients

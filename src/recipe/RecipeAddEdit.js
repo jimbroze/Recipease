@@ -4,9 +4,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { DragDropContext } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 
+import store from "../store";
+import { errorAdded, errorRemoved, errorsCleared } from "../error/errorSlice";
 import RecipeMethod from "./RecipeMethod";
 // import Ingredients from "./Ingredients";
-import { errorAdded, errorRemoved, errorsCleared } from "../error/errorSlice";
 import ErrorSummary from "../error/ErrorSummary";
 import LoadingSpinner from "../common/LoadingSpinner";
 
@@ -17,7 +18,7 @@ import {
 } from "../api/apiSlice";
 
 import {
-  // setCurrentRecipe,
+  setCurrentRecipe,
   ingredientsMoved,
   stepsMoved,
 } from "./currentRecipeSlice";
@@ -57,9 +58,10 @@ const RecipeAddEdit = (props) => {
     dispatch(errorsCleared());
   });
   useEffect(() => {
-    // Populate initial form values
+    // Populate initial form values and add ingredients & method to state.
     if (!isNew && fetchedRecipe) {
       reset(fetchedRecipe);
+      dispatch(setCurrentRecipe(fetchedRecipe));
     }
 
     if (isNew || isSuccess) {
@@ -75,30 +77,27 @@ const RecipeAddEdit = (props) => {
     }
   }, [fetchedRecipe, isNew, isSuccess, isError, error]);
 
-  // TODO merge form data with state. Collect required data from form
   const onSubmit = async (recipeData) => {
-    var submitAction = function () {
-      return isNew
-        ? createRecipe({ ...recipeData, userId })
-        : editRecipe(recipeData);
-    };
+    if (!canSave) return;
 
-    if (canSave) {
-      dispatch(errorRemoved("saveError"));
-      try {
-        // var scope needed to use in finally block (hoisted)
-        var recipe = await submitAction().unwrap();
-      } catch (err) {
-        dispatch(
-          errorAdded({
-            id: "saveError",
-            message: "Cannot save recipe",
-            error: err,
-          })
-        );
-      } finally {
-        navigate(`/recipes/${recipe.id}`);
-      }
+    const { sections, steps, ingredients } = store.getState().currentRecipe;
+    recipeData = { ...recipeData, sections, steps, ingredients };
+    const submitAction = isNew ? createRecipe : editRecipe;
+
+    dispatch(errorRemoved("saveError"));
+    try {
+      // var scope needed to use in finally block (hoisted)
+      var recipe = await submitAction({ recipe: recipeData, userId }).unwrap();
+    } catch (err) {
+      dispatch(
+        errorAdded({
+          id: "saveError",
+          message: "Cannot save recipe",
+          error: err,
+        })
+      );
+    } finally {
+      navigate(`/recipes/${recipe.id}`);
     }
   };
 
