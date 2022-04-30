@@ -1,10 +1,14 @@
 import React, { useEffect } from "react";
-// import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { useGetRecipeQuery } from "../api/apiSlice";
+import { errorAdded, errorRemoved, errorsCleared } from "../error/errorSlice";
+import ErrorSummary from "../error/ErrorSummary";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const RecipeShow = (props) => {
+  const dispatch = useDispatch();
   let params = useParams();
   const recipeId = params.recipeId;
 
@@ -15,6 +19,23 @@ const RecipeShow = (props) => {
     isError,
     error,
   } = useGetRecipeQuery(recipeId);
+
+  useEffect(() => {
+    dispatch(errorsCleared());
+  });
+  useEffect(() => {
+    if (isSuccess) {
+      dispatch(errorRemoved("fetchError"));
+    } else if (isError) {
+      dispatch(
+        errorAdded({
+          id: "fetchError",
+          message: "Cannot fetch recipe",
+          error,
+        })
+      );
+    }
+  }, [isSuccess, isError, error]);
 
   const renderRecipe = () => {
     return (
@@ -29,15 +50,18 @@ const RecipeShow = (props) => {
     if (isSuccess) {
       return renderRecipe();
     } else if (isFetching) {
-      return <div>loading</div>;
-      // TODO replace with loading spinner
+      return <LoadingSpinner text="Loading recipe" />;
     } else if (isError) {
-      console.log(`${error.status}: ${error.error}`);
-      return <div>Error fetching recipes</div>;
+      return <div></div>;
     }
   };
 
-  return <div>{renderContent()}</div>;
+  return (
+    <div>
+      <ErrorSummary />
+      {renderContent()}
+    </div>
+  );
 };
 
 export default RecipeShow;

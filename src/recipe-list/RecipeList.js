@@ -1,11 +1,14 @@
 import React, { useEffect } from "react";
-// import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import { useGetRecipesQuery } from "../api/apiSlice";
+import { errorAdded, errorRemoved, errorsCleared } from "../error/errorSlice";
+import ErrorSummary from "../error/ErrorSummary";
 import LoadingSpinner from "../common/LoadingSpinner";
 
 const RecipeList = (props) => {
+  const dispatch = useDispatch();
   const {
     data: recipes = [],
     isLoading,
@@ -13,6 +16,23 @@ const RecipeList = (props) => {
     isError,
     error,
   } = useGetRecipesQuery();
+
+  useEffect(() => {
+    dispatch(errorsCleared());
+  });
+  useEffect(() => {
+    if (isSuccess) {
+      dispatch(errorRemoved("fetchError"));
+    } else if (isError) {
+      dispatch(
+        errorAdded({
+          id: "fetchError",
+          message: "Cannot fetch recipes",
+          error,
+        })
+      );
+    }
+  }, [isSuccess, isError, error]);
 
   const renderRecipes = () => {
     return (
@@ -33,12 +53,10 @@ const RecipeList = (props) => {
   const renderContent = () => {
     if (isLoading) {
       return <LoadingSpinner text="Loading recipes" />;
-      // TODO replace with loading spinner
     } else if (isSuccess) {
       return renderRecipes();
     } else if (isError) {
-      console.log(`${error.status}: ${error.error}`);
-      return <div>Error fetching recipes</div>;
+      return <div></div>;
     }
   };
 
@@ -55,7 +73,8 @@ const RecipeList = (props) => {
   return (
     <div>
       {renderCreateButton()}
-      <h2>Recipes</h2>
+      <h1>Recipes</h1>
+      <ErrorSummary />
       {renderContent()}
     </div>
   );

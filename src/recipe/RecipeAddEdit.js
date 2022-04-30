@@ -6,7 +6,8 @@ import { useForm } from "react-hook-form";
 
 import RecipeMethod from "./RecipeMethod";
 // import Ingredients from "./Ingredients";
-import ErrorSummary from "../common/ErrorSummary";
+import { errorAdded, errorRemoved, errorsCleared } from "../error/errorSlice";
+import ErrorSummary from "../error/ErrorSummary";
 import LoadingSpinner from "../common/LoadingSpinner";
 
 import {
@@ -16,7 +17,7 @@ import {
 } from "../api/apiSlice";
 
 import {
-  setCurrentRecipe,
+  // setCurrentRecipe,
   ingredientsMoved,
   stepsMoved,
 } from "./currentRecipeSlice";
@@ -26,7 +27,7 @@ const RecipeAddEdit = (props) => {
   let navigate = useNavigate();
   let params = useParams();
   const { userId } = useSelector((state) => state.auth);
-  const [pageErrors, setPageErrors] = useState({});
+  // const [pageErrors, setPageErrors] = useState({});
   const {
     register,
     handleSubmit,
@@ -53,11 +54,26 @@ const RecipeAddEdit = (props) => {
   } = useGetRecipeQuery(recipeId, { skip: isNew });
 
   useEffect(() => {
+    dispatch(errorsCleared());
+  });
+  useEffect(() => {
     // Populate initial form values
     if (!isNew && fetchedRecipe) {
       reset(fetchedRecipe);
     }
-  }, [fetchedRecipe]);
+
+    if (isNew || isSuccess) {
+      dispatch(errorRemoved("fetchError"));
+    } else if (isError) {
+      dispatch(
+        errorAdded({
+          id: "fetchError",
+          message: "Cannot fetch recipe",
+          error,
+        })
+      );
+    }
+  }, [fetchedRecipe, isNew, isSuccess, isError, error]);
 
   // TODO merge form data with state. Collect required data from form
   const onSubmit = async (recipeData) => {
@@ -68,20 +84,18 @@ const RecipeAddEdit = (props) => {
     };
 
     if (canSave) {
-      setPageErrors((pageErrors) => {
-        const newPageErrors = { ...pageErrors };
-        delete newPageErrors["saveError"];
-        return newPageErrors;
-      });
+      dispatch(errorRemoved("saveError"));
       try {
         // var scope needed to use in finally block (hoisted)
         var recipe = await submitAction().unwrap();
       } catch (err) {
-        console.error("Failed to save the recipe: ", err);
-        setPageErrors({
-          ...pageErrors,
-          saveError: { message: "Failed to save the recipe" },
-        });
+        dispatch(
+          errorAdded({
+            id: "saveError",
+            message: "Cannot save recipe",
+            error: err,
+          })
+        );
       } finally {
         navigate(`/recipes/${recipe.id}`);
       }
@@ -173,31 +187,19 @@ const RecipeAddEdit = (props) => {
   };
 
   const renderContent = () => {
-    // TODO convert errors to global redux state
     if (isNew || isSuccess) {
-      if ("fetchError" in pageErrors) {
-        setPageErrors((pageErrors) => {
-          const newPageErrors = { ...pageErrors };
-          delete newPageErrors["fetchError"];
-          return newPageErrors;
-        });
-      }
       return renderForm();
     } else if (isFetching) {
       return <LoadingSpinner text="Loading recipe" />;
-    } else if (isError && !("fetchError" in pageErrors)) {
-      console.log(`${error.status}: ${error.error}`);
-      setPageErrors({
-        ...pageErrors,
-        fetchError: { message: "Cannot fetch recipe" },
-      });
+    } else if (isError) {
       return <div></div>;
     }
   };
 
   return (
     <div>
-      <ErrorSummary errors={pageErrors} />
+      <h1 style={{ textAlign: "center" }}>{isNew ? "New" : "Edit"} Recipe</h1>
+      <ErrorSummary />
       {renderContent()}
     </div>
   );
