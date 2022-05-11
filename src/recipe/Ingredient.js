@@ -1,37 +1,17 @@
 import React from "react";
+import { useSelector } from "react-redux";
+
+import { ingredientsSelectors } from "./currentRecipeSlice";
 
 const Ingredient = (props) => {
-  // const draggableProps = props.draggableProps || { style: "" };
-  const ingredientText = (props.ingredient || { text: "" }).text;
+  const ingredient = useSelector((state) =>
+    ingredientsSelectors.selectById(state, props.id)
+  );
 
-  const renderDragHandle = () => {
-    if (!props.isEditable || props.isEditing) return;
-    return (
-      <i
-        {...props.dragHandleProps}
-        className="middle aligned arrows alternate icon large"
-      ></i>
-    );
-  };
+  const ingredientText = (ingredient || { text: "" }).text;
 
-  const renderCloseButton = () => {
-    if (!props.isEditable || props.isEditing) return;
-    return (
-      <div
-        className="right floated content"
-        style={{ marginLeft: "auto", order: "2" }}
-      >
-        <div
-          className="ui tiny negative basic icon button"
-          onClick={() => props.onRemove()}
-        >
-          <i className="close icon"></i>
-        </div>
-      </div>
-    );
-  };
-
-  const ingredientContent = props.children || (
+  // Content can be replace. e.g for editing
+  const content = props.altContent || (
     <p className="header" onClick={props.onClick}>
       {ingredientText}
     </p>
@@ -44,20 +24,15 @@ const Ingredient = (props) => {
   //     </div>
 
   return (
-    <div
-      className="item"
-      ref={props.innerRef}
-      {...props.draggableProps}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        ...props.draggableProps?.style,
-      }}
-    >
-      {renderCloseButton()}
-      {renderDragHandle()}
-      <div className="content">{ingredientContent}</div>
-    </div>
+    <>
+      {React.Children.map(props.children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(child, { ...props });
+        }
+        return child;
+      })}
+      <div className="content">{content}</div>
+    </>
   );
 };
 

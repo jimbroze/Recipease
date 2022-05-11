@@ -9,9 +9,9 @@ const MakeEditable = (
   inputType,
   inputProps
 ) => {
-  function getDisplayName(WrappedComponent) {
-    return WrappedComponent.displayName || WrappedComponent.name || "Component";
-  }
+  // function getDisplayName(WrappedComponent) {
+  //   return WrappedComponent.displayName || WrappedComponent.name || "Component";
+  // }
 
   return function WithWrapper(props) {
     const dispatch = useDispatch();
@@ -26,7 +26,7 @@ const MakeEditable = (
 
     const { addAction, updateAction, removeAction } = entityActions;
 
-    const componentName = getDisplayName(WrappedComponent).toLowerCase();
+    // const componentName = getDisplayName(WrappedComponent).toLowerCase();
 
     const InputType = inputType || "input";
 
@@ -62,7 +62,7 @@ const MakeEditable = (
       setIsEditing(true);
     };
 
-    const renderChildren = () => {
+    const renderAltContent = () => {
       if (!isEditing) return;
       return (
         <div className="field">
@@ -78,18 +78,16 @@ const MakeEditable = (
         </div>
       );
     };
-
     return (
       <WrappedComponent
         {...props}
-        {...{ [componentName]: entity }}
+        // {...{ [componentName]: entity }} // No longer required
         onRemove={removeEntity}
         onClick={onClick}
         isEditable={true}
         isEditing={isEditing}
-      >
-        {renderChildren()}
-      </WrappedComponent>
+        altContent={renderAltContent()}
+      />
     );
   };
 };

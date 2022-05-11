@@ -41,10 +41,9 @@ const RecipeAddEdit = (props) => {
   const [createRecipe, { isLoading: isLoadingAdd }] = useCreateRecipeMutation();
   const [editRecipe, { isLoading: isLoadingEdit }] = useEditRecipeMutation();
   const isLoading = isLoadingAdd || isLoadingEdit;
-  const canSave = isValid && isDirty && !isLoading;
-
   const recipeId = params.recipeId;
   const isNew = !recipeId;
+  const canSave = isValid && !isLoading && (isDirty || !isNew);
 
   const {
     data: fetchedRecipe,
@@ -165,8 +164,6 @@ const RecipeAddEdit = (props) => {
       </div> */}
 
         <DragDropContext onDragEnd={onDragEnd}>
-          {/* <h3>Ingredients</h3>
-        <Ingredients /> */}
           <h3>Method</h3>
           <RecipeMethod />
         </DragDropContext>
@@ -179,7 +176,7 @@ const RecipeAddEdit = (props) => {
           }
           type="submit"
         >
-          Submit
+          Save
         </button>
       </form>
     );

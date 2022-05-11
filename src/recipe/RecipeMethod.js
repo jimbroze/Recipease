@@ -4,7 +4,7 @@ import { Droppable, Draggable } from "react-beautiful-dnd";
 
 import { stepsSelectors, stepActions } from "./currentRecipeSlice";
 import MakeEditable from "./MakeEditable";
-import Ingredients from "./Ingredients";
+import EditIngredients from "./EditIngredients";
 import Instruction from "./Instruction";
 
 const RecipeMethod = (props) => {
@@ -60,7 +60,7 @@ const RecipeMethod = (props) => {
                         <div className="header">Step {index + 1}</div>
                         <div className="ui equal width grid">
                           <div className="column">
-                            <Ingredients stepId={stepId} />
+                            <EditIngredients stepId={stepId} />
                           </div>
                           <div className="column">
                             <EditableInstruction id={stepId} />
@@ -77,7 +77,7 @@ const RecipeMethod = (props) => {
         )}
       </Droppable>
       <EditableInstruction />
-      {/* <Ingredients /> */}
+      {/* <EditIngredients /> */}
     </>
   );
 };
