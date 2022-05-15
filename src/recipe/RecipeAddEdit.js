@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { DragDropContext } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 
+import { Form, Input, Header, Button, Label } from "semantic-ui-react";
+import Textarea from "react-textarea-autosize";
+
 import store from "../store";
 import { errorAdded, errorRemoved, errorsCleared } from "../error/errorSlice";
-import RecipeMethod from "./RecipeMethod";
+import EditSteps from "./EditSteps";
 // import Ingredients from "./Ingredients";
 import ErrorSummary from "../error/ErrorSummary";
 import LoadingSpinner from "../common/LoadingSpinner";
@@ -103,22 +106,23 @@ const RecipeAddEdit = (props) => {
   const renderError = (name) => {
     if (errors[name]) {
       return (
-        <div className="ui pointing red basic label">
+        <Label pointing color="red" basic>
           {/* <div className="ui error message"> */}
-          <div className="header">{errors[name]?.message}</div>
-        </div>
+          <Header>{errors[name]?.message}</Header>
+        </Label>
       );
     }
   };
 
-  const Input = ({ type, name, label, required }) => {
+  const RecipeInput = ({ type, name, label, required }) => {
+    // TODO Change input to Sem UI component. Doesn't work with hook form.
     const InputType = type || "input";
-    const className = `field ${errors[name] ? "error" : ""}`;
+    const errorClass = `${errors[name] ? "error" : ""}`;
     return (
-      <div className={className}>
+      <Form.Field className={errorClass}>
         <label>{label}</label>
         <InputType
-          type={type || "text"}
+          // type={type || "text"}
           {...register(name, {
             required: {
               value: required || false,
@@ -128,7 +132,7 @@ const RecipeAddEdit = (props) => {
           autoComplete="off"
         />
         {renderError(name)}
-      </div>
+      </Form.Field>
     );
   };
 
@@ -154,9 +158,9 @@ const RecipeAddEdit = (props) => {
 
   const renderForm = () => {
     return (
-      <form onSubmit={handleSubmit(onSubmit)} className="ui form error">
-        <Input name="title" label="Title" required />
-        <Input type="textarea" name="description" label="Description" />
+      <Form onSubmit={handleSubmit(onSubmit)} error>
+        <RecipeInput name="title" label="title" required />
+        <RecipeInput type={Textarea} name="description" label="Description" />
 
         {/* <div class="meta">
         <span class="price">$1200</span>
@@ -164,12 +168,11 @@ const RecipeAddEdit = (props) => {
       </div> */}
 
         <DragDropContext onDragEnd={onDragEnd}>
-          <h3>Method</h3>
-          <RecipeMethod />
+          <Header as={"h3"}>Method</Header>
+          <EditSteps />
         </DragDropContext>
-        <button
+        <Button
           className={
-            "ui button " +
             (isLoading ? "loading " : "") +
             (canSave ? "" : "disabled ") +
             "primary"
@@ -177,8 +180,8 @@ const RecipeAddEdit = (props) => {
           type="submit"
         >
           Save
-        </button>
-      </form>
+        </Button>
+      </Form>
     );
   };
 
@@ -194,7 +197,9 @@ const RecipeAddEdit = (props) => {
 
   return (
     <div>
-      <h1 style={{ textAlign: "center" }}>{isNew ? "New" : "Edit"} Recipe</h1>
+      <Header as="h1" textAlign="center">
+        {isNew ? "New" : "Edit"} Recipe
+      </Header>
       <ErrorSummary />
       {renderContent()}
     </div>

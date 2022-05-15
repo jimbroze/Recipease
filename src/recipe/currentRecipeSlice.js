@@ -100,7 +100,6 @@ const currentRecipeSlice = createSlice({
     ingredientRemoved: {
       reducer(state, action) {
         const { ingredientId, stepId } = action.payload;
-        console.log(stepId);
 
         ingredientsAdapter.removeOne(state.ingredients, ingredientId);
 

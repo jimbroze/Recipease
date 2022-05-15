@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Form } from "semantic-ui-react";
 
 const MakeEditable = (
   WrappedComponent,
   entitySelector,
   entityActions,
   placeholder,
-  inputType,
+  InputType,
   inputProps
 ) => {
   // function getDisplayName(WrappedComponent) {
@@ -28,7 +29,7 @@ const MakeEditable = (
 
     // const componentName = getDisplayName(WrappedComponent).toLowerCase();
 
-    const InputType = inputType || "input";
+    const InputComp = InputType || "input";
 
     const removeEntity = () => {
       dispatch(removeAction(props.id, props.containerId));
@@ -65,8 +66,8 @@ const MakeEditable = (
     const renderAltContent = () => {
       if (!isEditing) return;
       return (
-        <div className="field">
-          <InputType
+        <Form.Field>
+          <InputComp
             placeholder={placeholder}
             onChange={onChange}
             onKeyPress={onEnter}
@@ -75,19 +76,21 @@ const MakeEditable = (
             value={text}
             {...inputProps}
           />
-        </div>
+        </Form.Field>
       );
     };
     return (
-      <WrappedComponent
-        {...props}
-        // {...{ [componentName]: entity }} // No longer required
-        onRemove={removeEntity}
-        onClick={onClick}
-        isEditable={true}
-        isEditing={isEditing}
-        altContent={renderAltContent()}
-      />
+      <div style={{ cursor: "pointer", display: "contents" }}>
+        <WrappedComponent
+          {...props}
+          // {...{ [componentName]: entity }} // No longer required
+          onRemove={removeEntity}
+          onClick={onClick}
+          isEditable={true}
+          isEditing={isEditing}
+          altContent={renderAltContent()}
+        />
+      </div>
     );
   };
 };

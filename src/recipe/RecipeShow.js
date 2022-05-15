@@ -2,13 +2,15 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 
+import { Header } from "semantic-ui-react";
+
 import { useGetRecipeQuery } from "../api/apiSlice";
 import { errorAdded, errorRemoved, errorsCleared } from "../error/errorSlice";
 import { setCurrentRecipe } from "./currentRecipeSlice";
 import ErrorSummary from "../error/ErrorSummary";
 import LoadingSpinner from "../common/LoadingSpinner";
 import Ingredients from "./Ingredients";
-import Method from "./Method";
+import Steps from "./Steps";
 
 const RecipeShow = (props) => {
   const dispatch = useDispatch();
@@ -45,12 +47,12 @@ const RecipeShow = (props) => {
   const renderRecipe = () => {
     return (
       <div>
-        <h1>{recipe.title}</h1>
+        <Header as="h1">{recipe.title}</Header>
         <p>{recipe.description}</p>
-        <h3>Ingredients</h3>
+        <Header as="h3">Ingredients</Header>
         <Ingredients ingredientIds={recipe.ingredients.ids} />
-        <h3>Method</h3>
-        <Method />
+        <Header as="h3">Method</Header>
+        <Steps />
       </div>
     );
   };

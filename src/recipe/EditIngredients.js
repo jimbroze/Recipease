@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import { useSelector } from "react-redux";
+
+import { Icon, Button, Item, Ref } from "semantic-ui-react";
 
 import Ingredient from "./Ingredient";
 import MakeEditable from "./MakeEditable";
@@ -30,27 +32,26 @@ const EditIngredients = ({ stepId }) => {
   const DragHandle = ({ isEditing, dragHandleProps }) => {
     if (isEditing) return null;
     return (
-      <i
+      <Icon
+        name="arrows alternate"
+        size="large"
+        className="middle aligned"
         {...dragHandleProps}
-        className="middle aligned arrows alternate icon large"
-      ></i>
+      />
     );
   };
 
   const CloseButton = ({ isEditing, onRemove }) => {
     if (isEditing) return null;
     return (
-      <div
-        className="right floated content"
-        style={{ marginLeft: "auto", order: "2" }}
-      >
-        <div
-          className="ui tiny negative basic icon button"
-          onClick={() => onRemove()}
-        >
-          <i className="close icon"></i>
-        </div>
-      </div>
+      <Button
+        basic
+        negative
+        size="tiny"
+        icon="close"
+        onClick={() => onRemove()}
+        style={{ marginLeft: "auto", order: "2" }} // Float to right
+      />
     );
   };
 
@@ -64,7 +65,6 @@ const EditIngredients = ({ stepId }) => {
       >
         {(provided) => (
           <div
-            className="item"
             ref={provided.innerRef}
             {...provided.draggableProps}
             style={{
@@ -91,7 +91,6 @@ const EditIngredients = ({ stepId }) => {
             ingredientIds={ingredientsIds}
             ReplacementIngredient={DraggableIngredient}
             stepId={stepId}
-            // childProps={childProps}
           />
           {provided.placeholder}
           <EditableIngredient containerId={stepId} isNotDraggable />

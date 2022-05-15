@@ -1,5 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import { Item, Header } from "semantic-ui-react";
 
 import { ingredientsSelectors } from "./currentRecipeSlice";
 
@@ -12,9 +13,9 @@ const Ingredient = (props) => {
 
   // Content can be replace. e.g for editing
   const content = props.altContent || (
-    <p className="header" onClick={props.onClick}>
+    <Header as="p" size="small" onClick={props.onClick}>
       {ingredientText}
-    </p>
+    </Header>
   );
 
   // For mini ingredients on steps try labels:
@@ -31,7 +32,7 @@ const Ingredient = (props) => {
         }
         return child;
       })}
-      <div className="content">{content}</div>
+      <Item.Content>{content}</Item.Content>
     </>
   );
 };
